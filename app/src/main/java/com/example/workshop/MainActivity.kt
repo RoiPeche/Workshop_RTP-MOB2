@@ -2,53 +2,60 @@ package com.example.workshop
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.result.Result
 import com.google.gson.Gson
 
 class MainActivity : AppCompatActivity() {
 
-    private data class  TypeInfo (
+    data class  TypeInfo (
         val name: String,
         val url: String,
             )
 
-    private data class  PokemonType (
+    data class  PokemonType (
         val type: TypeInfo
             )
 
-    private data class  PokemonSprites (
+    data class  PokemonSprites (
         val front_default: String,
             )
 
-    private  data class PokemonInfo (
+    data class PokemonInfo (
         val id: Int,
         val name: String,
         val sprites: PokemonSprites,
         val types: List<PokemonType>,
             )
 
-    private data class Pokemon (
+    data class Pokemon (
         val name: String,
         val url: String,
         var info: PokemonInfo,
     )
 
-    private data class PokemonList (
+    data class PokemonList (
         val results: List<Pokemon>
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        var pokemonlist: PokemonList
+        val pokemonRV : RecyclerView = findViewById(R.id.pokemonRecyclerView)
+        val literalList = mutableListOf<Pokemon>()
+        val pokeAdapter = PokeAdapter(literalList)
+
+        pokemonRV.adapter = pokeAdapter
+        pokemonRV.layoutManager = LinearLayoutManager(this)
+
         loadPokemonList(151) {
-            pokemonlist = it
-            for (i in 0 until 151) {
-                println(pokemonlist.results[i].info.name)
-                println(pokemonlist.results[i].info.id)
-                println(pokemonlist.results[i].info.types[0].type.name)
-                println("--------")
+            var pokemonlist = it
+            val newData = pokemonlist.results
+            runOnUiThread {
+                (pokemonRV.adapter as PokeAdapter).dataSet.addAll(newData)
+                (pokemonRV.adapter as PokeAdapter).notifyDataSetChanged()
             }
         }
     }
@@ -67,8 +74,8 @@ class MainActivity : AppCompatActivity() {
                         val data = result.get()
                         val parsedJson = Gson().fromJson<PokemonList>(data, PokemonList::class.java)
                         for (i in 0 until limit) {
-                            loadPokemonProfile(parsedJson.results[i].url) {
-                                parsedJson.results[i].info = it
+                            loadPokemonProfile(parsedJson.results[i].url) { pokemon ->
+                                parsedJson.results[i].info = pokemon
                                 if (parsedJson.results[i].info.id == limit) {
                                     cb(parsedJson)
                                 }
