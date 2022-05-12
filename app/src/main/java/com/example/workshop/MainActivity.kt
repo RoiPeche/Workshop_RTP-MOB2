@@ -44,19 +44,12 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         val pokemonRV : RecyclerView = findViewById(R.id.pokemonRecyclerView)
-        val literalList = mutableListOf<Pokemon>()
-        val pokeAdapter = PokeAdapter(literalList)
 
-        pokemonRV.adapter = pokeAdapter
-        pokemonRV.layoutManager = LinearLayoutManager(this)
+        loadPokemonList(151) { pokemonList ->
+            val pokeAdapter = PokeAdapter(pokemonList.results as MutableList<Pokemon>)
 
-        loadPokemonList(151) {
-            var pokemonlist = it
-            val newData = pokemonlist.results
-            runOnUiThread {
-                (pokemonRV.adapter as PokeAdapter).dataSet.addAll(newData)
-                (pokemonRV.adapter as PokeAdapter).notifyDataSetChanged()
-            }
+            pokemonRV.adapter = pokeAdapter
+            pokemonRV.layoutManager = LinearLayoutManager(this@MainActivity)
         }
     }
 
